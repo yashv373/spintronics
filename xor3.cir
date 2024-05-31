@@ -1,0 +1,175 @@
+** Title:  XOR/XNOR CMOS MTJ Hybrid Circuit
+** Author: Yashvardhan Singh, Electronics Engg., MIT Manipal
+**************** Title ****************
+.title XOR/XNOR MTJ Logic Circuit 
+************************************************
+*************** Main Circuit *******************
+************************************************
+**************** Voltages ****************
+VA A 0 pulse(1.8v 0v 0ns 0.1ns 0.1ns 5ns 10ns)
+Vsupply vdd 0 dc=1.8
+Vclock clk 0 pulse(0v 1.8v 5ns 200ps 200ps 5ns 25ns)
+Venable en 0 pulse(0v 1.8v 15ns 200ps 200ps 10ns 40ns) 
+VB b 0 dc=0
+**************** Pre-Charge Sense Amplifier  ****************
+*mosname drain gate source substrate model width length
+MP1 xnor clk vdd vdd CMOSP w=1.8u l=0.18u
+MP2 xnor xor vdd vdd CMOSP w=1.8u l=0.18u
+MP3 xor xnor vdd vdd CMOSP w=1.8u l=0.18u
+MP4 xor clk vdd vdd CMOSP w=1.8u l=0.18u
+MN1 xnor xor 1 1 CMOSN w=0.9u l=0.18u
+MN2 xor xnor 3 3 CMOSN w=0.9u l=0.18u
+**************** XOR/XNOR Logic  ****************
+*mosname drain gate source substrate model width length
+MXN1 1 AC 2 2 CMOSN W=0.9u L=0.18u
+MXN2 3 A 2 2 CMOSN W=0.9u L=0.18u
+MXN3 3 AC 4 4 CMOSN W=0.9u L=0.18u
+MXN4 1 A 4 4 CMOSN W=0.9u L=0.18u
+**************** Reading Transistors  ****************
+*mosname drain gate source substrate model width length
+MRN1 2 clk 5 5 CMOSN W=0.9u L=0.18u
+MRN2 4 clk 6 6 CMOSN W=0.9u L=0.18u
+**************** Write Drivers ****************
+*mosname drain gate source substrate model width length
+MWP1 5 v2 vdd vdd CMOSP w=3.6u l=0.18u
+MWN1 5 v4 0 0 CMOSN w=1.8u l=0.18u
+MWP2 6 v1 vdd vdd CMOSP w=3.6u l=0.18u
+MWN2 6 v3 0 0 CMOSN w=1.8u l=0.18u
+**************** Discharge/Evaluation Transistor ****************
+*mosname drain gate source substrate model width length
+MDN1 7 clk 0 0 CMOSN w=0.9u l=0.18u
+**************** MTJs ****************
+XMTJ1 5 7 MTJ lx='40n' ly='40n' lz='1.48n' Ms0='1300' P0='0.85' alpha='0.06' Tmp0='358' RA0='7' th_in='0.001'
+XMTJ2 6 7 MTJ lx='40n' ly='40n' lz='1.48n' Ms0='1300' P0='0.85' alpha='0.06' Tmp0='358' RA0='7' th_in='3.140'
+**************** Write Enable Circuit ****************
+XNAND1 v2 en b vdd NAND
+XNAND2 v1 en bc vdd NAND
+XINV1 bc b vdd INVTR
+XINV2 v4 v1 vdd INVTR 
+XINV3 v3 v2 vdd INVTR
+**************** XOR/XNOR Primary Input (A) ****************
+XINV4 AC A vdd INVTR
+************************************************
+**************** Analysis **********************
+************************************************
+.control
+tran 1000p 40n uic
+****Plot settings
+set gridstyle nogrid
+set color0=black 
+set color1=white 
+set color3=blue
+set color4=red
+set color5=purple
+set color6=orange
+set color7=yellow
+set color8=pink
+set color9=cyan
+set color10=green
+set color11 = rgb:f/f/e
+set xbrushwidth=4
+set xbrushwidth=3
+****Graph Plot
+plot v(clk)+10 v(A)+8 v(b)+6 v(xor)+2 v(xnor) v(en)+12 v(xmtj1.mz)+16 v(xmtj2.mz)+16
+*plot v(xmtj1.res) v(xmtj2.res)
+*plot v(v1) v(v2)+2 v(v3)+4 v(v4)+6
+.endc
+************************************************
+*********** MODELS & SUBCIRCUITS ***************
+************************************************
+**************** Subcircuits ****************
+****Magentic Tunelling Junction Subckt
+.include 'MTJ_model.txt'
+****Inverter Subckt
+.subckt INVTR op ip vd 
+MPMOS op ip vd vd CMOSP W=3.6u L=0.18u
+MNMOS op ip 0 0 CMOSN W=1.8u L=0.18u
+.ends
+****NAND Subckt
+.subckt NAND op ip1 ip2 vd 
+MPMOS1 op ip1 vd vd CMOSP W=3.6u L=0.18u
+MPMOS2 op ip2 vd vd CMOSP W=3.6u L=0.18u
+MNMOS1 op ip1 n n CMOSN W=1.8u L=0.18u
+MNMOS2 n ip2 0 0 CMOSN W=1.8u L=0.18u
+.ends
+**************** Models ****************
+******************************************
+*************** NMOS MODEL ***************
+******************************************
+.MODEL CMOSN NMOS (LEVEL   = 49
++VERSION = 3.1            TNOM    = 27             TOX     = 4.1E-9
++XJ      = 1E-7           NCH     = 2.3549E17      VTH0    = 0.3832823
++K1      = 0.5915709      K2      = 2.432705E-3    K3      = 1E-3
++K3B     = 2.881708       W0      = 1E-7           NLX     = 1.556472E-7
++DVT0W   = 0              DVT1W   = 0              DVT2W   = 0
++DVT0    = 1.8671789      DVT1    = 0.5070952      DVT2    = -0.0135063
++U0      = 275.5555875    UA      = -1.150238E-9   UB      = 2.014145E-18
++UC      = 4.217107E-11   VSAT    = 1.002265E5     A0      = 1.900204
++AGS     = 0.4125379      B0      = -1.06835E-8    B1      = -1E-7
++KETA    = 2.505893E-4    A1      = 4.377095E-4    A2      = 0.9584318
++RDSW    = 105            PRWG    = 0.5            PRWB    = -0.2
++WR      = 1              WINT    = 9.458635E-9    LINT    = 1.257015E-8
++DWG     = -1.204617E-9
++DWB     = 9.664221E-9    VOFF    = -0.0946268     NFACTOR = 2.3761356
++CIT     = 0              CDSC    = 2.4E-4         CDSCD   = 0
++CDSCB   = 0              ETA0    = 1.375861E-3    ETAB    = 1.376595E-4
++DSUB    = 2.75603E-3     PCLM    = 0.8650201      PDIBLC1 = 0.2388154
++PDIBLC2 = 3.957307E-3    PDIBLCB = -0.1           DROUT   = 0.7285083
++PSCBE1  = 6.140394E10    PSCBE2  = 5.822994E-8    PVAG    = 0.1710916
++DELTA   = 0.01           RSH     = 6.7            MOBMOD  = 1
++PRT     = 0              UTE     = -1.5           KT1     = -0.11
++KT1L    = 0              KT2     = 0.022          UA1     = 4.31E-9
++UB1     = -7.61E-18      UC1     = -5.6E-11       AT      = 3.3E4
++WL      = 0              WLN     = 1              WW      = 0
++WWN     = 1              WWL     = 0              LL      = 0
++LLN     = 1              LW      = 0              LWN     = 1
++LWL     = 0              CAPMOD  = 2              XPART   = 0.5
++CGDO    = 7.32E-10       CGSO    = 7.32E-10       CGBO    = 1E-12
++CJ      = 9.775464E-4    PB      = 0.7224132      MJ      = 0.3611113
++CJSW    = 2.244809E-10   PBSW    = 0.7522727      MJSW    = 0.1
++CJSWG   = 3.3E-10        PBSWG   = 0.7522727      MJSWG   = 0.1
++CF      = 0              PVTH0   = -1.4684E-3     PRDSW   = -0.6888789
++PK2     = 8.530602E-4    WKETA   = 1.029979E-3    LKETA   = -9.473178E-3
++PU0     = -0.2034778     PUA     = -2.37215E-11   PUB     = 4.74506E-25
++PVSAT   = 901.6731904    PETA0   = 1E-4           PKETA   = 1.329782E-3)
+******************************************
+*************** PMOS MODEL ***************
+******************************************
+.MODEL CMOSP PMOS (LEVEL   = 49
++VERSION = 3.1            TNOM    = 27             TOX     = 4.1E-9
++XJ      = 1E-7           NCH     = 4.1589E17      VTH0    = -0.4077986
++K1      = 0.581505       K2      = 0.0273445      K3      = 0
++K3B     = 10.7066855     W0      = 1E-6           NLX     = 7.085816E-8
++DVT0W   = 0              DVT1W   = 0              DVT2W   = 0
++DVT0    = 0.5427394      DVT1    = 0.3493763      DVT2    = 0.08174
++U0      = 116.6094811    UA      = 1.563897E-9    UB      = 1E-21
++UC      = -1E-10         VSAT    = 1.826166E5     A0      = 1.6423237
++AGS     = 0.3934878      B0      = 1.149554E-6    B1      = 3.508687E-6
++KETA    = 0.0146913      A1      = 0.4749659      A2      = 0.31182
++RDSW    = 309.921929     PRWG    = 0.5            PRWB    = -0.5
++WR      = 1              WINT    = 0              LINT    = 2.558214E-8
++DWG     = -2.004125E-8
++DWB     = 1.039815E-8    VOFF    = -0.1025445     NFACTOR = 1.9238833
++CIT     = 0              CDSC    = 2.4E-4         CDSCD   = 0
++CDSCB   = 0              ETA0    = 0.0276906      ETAB    = -0.0693376
++DSUB    = 0.6302703      PCLM    = 1.3245935      PDIBLC1 = 0
++PDIBLC2 = 0.0136588      PDIBLCB = -1E-3          DROUT   = 7.780261E-4
++PSCBE1  = 1.005282E10    PSCBE2  = 2.90349E-9     PVAG    = 3.2027144
++DELTA   = 0.01           RSH     = 7.5            MOBMOD  = 1
++PRT     = 0              UTE     = -1.5           KT1     = -0.11
++KT1L    = 0              KT2     = 0.022          UA1     = 4.31E-9
++UB1     = -7.61E-18      UC1     = -5.6E-11       AT      = 3.3E4
++WL      = 0              WLN     = 1              WW      = 0
++WWN     = 1              WWL     = 0              LL      = 0
++LLN     = 1              LW      = 0              LWN     = 1
++LWL     = 0              CAPMOD  = 2              XPART   = 0.5
++CGDO    = 6.57E-10       CGSO    = 6.57E-10       CGBO    = 1E-12
++CJ      = 1.18422E-3     PB      = 0.8552517      MJ      = 0.4131208
++CJSW    = 1.696634E-10   PBSW    = 0.6336557      MJSW    = 0.2424658
++CJSWG   = 4.22E-10       PBSWG   = 0.6336557      MJSWG   = 0.2424658
++CF      = 0              PVTH0   = 8.414026E-4    PRDSW   = 9.9222413
++PK2     = 1.47551E-3     WKETA   = 2.494855E-3    LKETA   = 5.87759E-3
++PU0     = -1.8432469     PUA     = -6.92569E-11   PUB     = 1E-21
++PVSAT   = 50             PETA0   = 1E-4           PKETA   = 2.230497E-3)
+*******************
+.end
